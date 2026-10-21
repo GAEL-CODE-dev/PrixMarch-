@@ -7,7 +7,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const db = require('./db/database');
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', app: 'PrixMarché API' });
+});
 
 app.use('/api/markets', require('./routes/markets'));
 app.use('/api/products', require('./routes/products'));
@@ -25,10 +27,6 @@ app.use((err, req, res, next) => {
   }
   console.error(err);
   res.status(500).json({ erreur: 'Erreur interne du serveur' });
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', app: 'PrixMarché API' });
 });
 
 app.listen(PORT, () => {
