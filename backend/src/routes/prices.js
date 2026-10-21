@@ -6,7 +6,7 @@ const router = express.Router();
 const PRIX_MAX = 1000000; // garde-fou contre les fautes de frappe
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Africa/Brazzaville' });
 }
 
 function isValidDate(str) {
