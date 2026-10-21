@@ -11,6 +11,7 @@ const db = require('./db/database');
 
 app.use('/api/markets', require('./routes/markets'));
 app.use('/api/products', require('./routes/products'));
+app.use('/api/prices', require('./routes/prices'));
 
 app.get('/api/db-check', (req, res) => {
   const count = (table) => db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n;
