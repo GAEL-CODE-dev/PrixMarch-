@@ -10,11 +10,14 @@ app.use(express.json());
 const db = require('./db/database');
 
 app.get('/api/db-check', (req, res) => {
-  const tables = db
-    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
-    .all();
-  res.json({tables: tables.map((t)  => t.name) });
-})
+  const count = (table) => db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n;
+  res.json({
+    users: count('users'),
+    markets: count('markets'),
+    products: count('products'),
+    prices: count('prices'),
+  });
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', app: 'PrixMarché API' });
