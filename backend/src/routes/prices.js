@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const { requireAuth } = require('../middleware/auth');
+const { priceLimiter } = require('../middleware/limits');
 
 const router = express.Router();
 
@@ -63,7 +64,7 @@ router.get('/', (req, res) => {
 });
 
 // Ajouter un prix
-router.post('/', requireAuth, (req, res) => {
+router.post('/', requireAuth, priceLimiter, (req, res) => {
   const { product_id, market_id, prix, date_releve } = req.body;
 
   const productId = Number(product_id);

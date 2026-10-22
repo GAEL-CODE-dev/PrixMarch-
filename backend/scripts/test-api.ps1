@@ -67,6 +67,10 @@ Test-Api 'Produit inconnu'           POST '/prices' '{"product_id":999,"market_i
 Test-Api 'Date dans le futur'        POST '/prices' '{"product_id":3,"market_id":1,"prix":1000,"date_releve":"2030-01-01"}' 400 $token
 Test-Api 'Date impossible'           POST '/prices' '{"product_id":3,"market_id":1,"prix":1000,"date_releve":"2026-13-45"}' 400 $token
 Test-Api 'JSON casse'                POST '/prices' '{pas du json' 400 $token
+# --- Taille du corps ---
+$gros = '{"nom":"' + ('a' * 20000) + '"}'
+Test-Api 'Corps trop volumineux'     POST '/auth/register' $gros 413
+
 
 # --- Contenu du jeton (decode localement) ---
 try {

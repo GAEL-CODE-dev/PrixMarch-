@@ -4,6 +4,7 @@ const db = require('../db/database');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config');
 const { requireAuth } = require('../middleware/auth');
+const { loginLimiter, registerLimiter } = require('../middleware/limits');
 
 
 const router = express.Router();
@@ -14,7 +15,7 @@ const BCRYPT_COST = 10;
 // Hash factice : sert à garder un temps de réponse identique si l'email n'existe pas
 const DUMMY_HASH = bcrypt.hashSync('mot-de-passe-factice', BCRYPT_COST);
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', registerLimiter, async (req, res, next) => {
   try {
     const body = req.body || {};
     const nom = typeof body.nom === 'string' ? body.nom.trim() : '';
@@ -58,7 +59,7 @@ router.post('/register', async (req, res, next) => {
 });
 
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', registerLimiter, async (req, res, next) => {
   try {
     const body = req.body || {};
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
