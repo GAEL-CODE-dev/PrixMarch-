@@ -61,6 +61,10 @@ Test-Api 'Profil sans jeton'         GET  '/auth/me' $null 401
 Test-Api 'Profil avec jeton'         GET  '/auth/me' $null 200 $token
 
 Test-Api 'Prix valide'               POST '/prices' $prixOk 201 $token
+Test-Api 'Doublon meme jour'         POST '/prices' $prixOk 409 $token
+Test-Api 'Prix beaucoup trop eleve'  POST '/prices' '{"product_id":3,"market_id":2,"prix":100000}' 422 $token
+Test-Api 'Prix beaucoup trop bas'    POST '/prices' '{"product_id":3,"market_id":2,"prix":10}' 422 $token
+Test-Api 'Date trop ancienne'        POST '/prices' '{"product_id":3,"market_id":2,"prix":1500,"date_releve":"2020-01-01"}' 400 $token
 Test-Api 'Prix a 0'                  POST '/prices' '{"product_id":3,"market_id":1,"prix":0}' 400 $token
 Test-Api 'Prix a 1.5'                POST '/prices' '{"product_id":3,"market_id":1,"prix":1.5}' 400 $token
 Test-Api 'Produit inconnu'           POST '/prices' '{"product_id":999,"market_id":1,"prix":1000}' 400 $token

@@ -6,6 +6,9 @@ const { priceLimiter } = require('../middleware/limits');
 const router = express.Router();
 
 const PRIX_MAX = 1000000; // garde-fou contre les fautes de frappe
+const JOURS_MAX = 90; // un rélévé plus vieux est refusé
+const FACTEUR_ECART = 5; //prix refusé s'il dépasse 5x la médiane (ou en dessous de 1/5)
+const NB_MIN_RELEVES = 5; // nombres de relevés minimun pour activer ce controle
 
 function today() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Africa/Brazzaville' });
@@ -27,6 +30,12 @@ function fraicheur(jours) {
   if (jours < 3) return 'recent';
   if (jours <= 14) return 'moyen';
   return 'ancien';
+}
+
+function mediane(valeurs) {
+  const tri = [...valeurs].sort((a, b) => a - b);
+  const milieu = Math.floor(tri.length / 2);
+  return tri.length % 2 ? tri[milieu] : Math.round((tri[milieu - 1] + tri[milieu]) / 2);
 }
 
 // Derniers prix ajoutés
@@ -63,9 +72,9 @@ router.get('/', (req, res) => {
   );
 });
 
-// Ajouter un prix
+// Ajouter un prix (connexion obligatoire)
 router.post('/', requireAuth, priceLimiter, (req, res) => {
-  const { product_id, market_id, prix, date_releve } = req.body;
+  const { product_id, market_id, prix, date_releve } = req.body || {};
 
   const productId = Number(product_id);
   const marketId = Number(market_id);
@@ -86,13 +95,46 @@ router.post('/', requireAuth, priceLimiter, (req, res) => {
   if (date > today()) {
     return res.status(400).json({ erreur: 'La date ne peut pas être dans le futur' });
   }
+  if (joursDepuis(date) > JOURS_MAX) {
+    return res
+      .status(400)
+      .json({ erreur: `La date ne peut pas remonter à plus de ${JOURS_MAX} jours` });
+  }
 
   const product = db.prepare('SELECT id FROM products WHERE id = ?').get(productId);
   const market = db.prepare('SELECT id FROM markets WHERE id = ?').get(marketId);
   if (!product) return res.status(400).json({ erreur: 'Produit inconnu' });
   if (!market) return res.status(400).json({ erreur: 'Marché inconnu' });
 
-    const result = db
+  // Doublon : même personne, même produit, même marché, même date
+  const doublon = db
+    .prepare(
+      'SELECT id FROM prices WHERE user_id = ? AND product_id = ? AND market_id = ? AND date_releve = ?'
+    )
+    .get(req.user.id, productId, marketId, date);
+  if (doublon) {
+    return res.status(409).json({
+      erreur: 'Tu as déjà enregistré un prix pour ce produit dans ce marché à cette date',
+    });
+  }
+
+  // Prix incohérent par rapport aux derniers relevés du produit
+  const recents = db
+    .prepare('SELECT prix FROM prices WHERE product_id = ? ORDER BY date_releve DESC, id DESC LIMIT 30')
+    .all(productId)
+    .map((r) => r.prix);
+
+  if (recents.length >= NB_MIN_RELEVES) {
+    const med = mediane(recents);
+    if (prixNum > med * FACTEUR_ECART || prixNum < med / FACTEUR_ECART) {
+      return res.status(422).json({
+        erreur: `Ce prix (${prixNum} FCFA) est très éloigné des prix habituels (environ ${med} FCFA). Vérifie le montant.`,
+        mediane: med,
+      });
+    }
+  }
+
+  const result = db
     .prepare(
       'INSERT INTO prices (product_id, market_id, user_id, prix, date_releve) VALUES (?, ?, ?, ?, ?)'
     )
@@ -103,6 +145,8 @@ router.post('/', requireAuth, priceLimiter, (req, res) => {
       'SELECT id, product_id, market_id, user_id, prix, date_releve, created_at FROM prices WHERE id = ?'
     )
     .get(result.lastInsertRowid);
+
+  res.status(201).json(created);
 });
 
 // Comparer un produit entre les marchés (dernier relevé de chaque marché)
