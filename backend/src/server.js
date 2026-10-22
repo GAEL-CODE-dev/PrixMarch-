@@ -16,6 +16,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/markets', require('./routes/markets'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/prices', require('./routes/prices'));
+app.use('/api/auth', require('./routes/auth'));
 
 // Route inconnue
 app.use('/api', (req, res) => {
