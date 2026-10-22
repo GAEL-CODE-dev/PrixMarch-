@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -62,7 +63,7 @@ router.get('/', (req, res) => {
 });
 
 // Ajouter un prix
-router.post('/', (req, res) => {
+router.post('/', requireAuth, (req, res) => {
   const { product_id, market_id, prix, date_releve } = req.body;
 
   const productId = Number(product_id);
@@ -90,15 +91,17 @@ router.post('/', (req, res) => {
   if (!product) return res.status(400).json({ erreur: 'Produit inconnu' });
   if (!market) return res.status(400).json({ erreur: 'Marché inconnu' });
 
-  const result = db
-    .prepare('INSERT INTO prices (product_id, market_id, prix, date_releve) VALUES (?, ?, ?, ?)')
-    .run(productId, marketId, prixNum, date);
+    const result = db
+    .prepare(
+      'INSERT INTO prices (product_id, market_id, user_id, prix, date_releve) VALUES (?, ?, ?, ?, ?)'
+    )
+    .run(productId, marketId, req.user.id, prixNum, date);
 
   const created = db
-    .prepare('SELECT id, product_id, market_id, prix, date_releve, created_at FROM prices WHERE id = ?')
+    .prepare(
+      'SELECT id, product_id, market_id, user_id, prix, date_releve, created_at FROM prices WHERE id = ?'
+    )
     .get(result.lastInsertRowid);
-
-  res.status(201).json(created);
 });
 
 // Comparer un produit entre les marchés (dernier relevé de chaque marché)
