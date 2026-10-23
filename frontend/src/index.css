@@ -40,6 +40,9 @@ h2 {
 }
 
 .entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0.9rem 1rem 0.4rem;
 }
 
@@ -286,4 +289,109 @@ h2 {
   font-size: 1.05rem;
   font-weight: 700;
   text-decoration: none;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--vert);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.champ input {
+  min-height: 52px;
+  padding: 0 1rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--carte);
+  color: var(--texte);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.champ input:focus {
+  outline: 2px solid var(--vert);
+  outline-offset: 1px;
+}
+
+.bouton {
+  min-height: 54px;
+  border: 0;
+  border-radius: var(--rayon);
+  background: var(--vert);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bouton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bouton-secondaire {
+  width: 100%;
+  background: var(--sable);
+  color: var(--texte);
+}
+
+.bascule {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.bandeau-info {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--rayon);
+  background: var(--vert-pale);
+  color: var(--vert-fonce);
+  font-weight: 600;
+}
+
+.aide {
+  margin: -0.5rem 0 0;
+  color: var(--gris);
+  font-size: 0.85rem;
+}
+
+.carte-profil {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.profil-nom {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.profil-email {
+  margin: 0.2rem 0 0;
+  color: var(--gris);
 }
