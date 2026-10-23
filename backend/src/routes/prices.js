@@ -38,13 +38,13 @@ function mediane(valeurs) {
   return tri.length % 2 ? tri[milieu] : Math.round((tri[milieu - 1] + tri[milieu]) / 2);
 }
 
-// Derniers prix ajoutés
+// Derniers prix ajoutés (filtres : product_id, market_id, q, categorie, limit)
 router.get('/', (req, res) => {
-  const { product_id, market_id } = req.query;
+  const { product_id, market_id, q, categorie } = req.query;
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
 
   let sql = `
-    SELECT p.id, p.product_id, pr.nom AS produit, pr.unite,
+    SELECT p.id, p.product_id, pr.nom AS produit, pr.unite, pr.categorie,
            p.market_id, m.nom AS marche, p.prix, p.date_releve, p.created_at
     FROM prices p
     JOIN products pr ON pr.id = p.product_id
@@ -59,6 +59,14 @@ router.get('/', (req, res) => {
   if (market_id) {
     sql += ' AND p.market_id = ?';
     params.push(Number(market_id));
+  }
+  if (q) {
+    sql += ' AND pr.nom LIKE ?';
+    params.push(`%${String(q)}%`);
+  }
+  if (categorie) {
+    sql += ' AND pr.categorie = ?';
+    params.push(String(categorie));
   }
   sql += ' ORDER BY p.date_releve DESC, p.id DESC LIMIT ?';
   params.push(limit);

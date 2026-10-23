@@ -1,21 +1,24 @@
-import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout.jsx';
+import Accueil from './pages/Accueil.jsx';
+import Comparer from './pages/Comparer.jsx';
+import Evolution from './pages/Evolution.jsx';
 
-function App() {
-  const [etat, setEtat] = useState("Connexion à l'API...");
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((r) => r.json())
-      .then((data) => setEtat(`API OK : ${data.app}`))
-      .catch(() => setEtat('API injoignable'));
-  }, []);
-
-  return (
-    <main>
-      <h1>PrixMarché</h1>
-      <p>{etat}</p>
-    </main>
-  );
+function NonTrouve() {
+  return <p>Page introuvable.</p>;
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<Accueil />} />
+          <Route path="comparer" element={<Comparer />} />
+          <Route path="evolution" element={<Evolution />} />
+          <Route path="*" element={<NonTrouve />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
