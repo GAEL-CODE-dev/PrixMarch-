@@ -11,7 +11,7 @@ Base : `http://localhost:3000/api`
 | GET | /products | produits (?q=, ?categorie=) |
 | GET | /products/categories | catégories |
 | GET | /products/:id | un produit |
-| GET | /prices | derniers prix (?product_id=, ?market_id=, ?limit=) |
+| GET | /prices | derniers prix (?product_id=, ?market_id=, ?q=, ?categorie=, ?limit=), avec le champ `categorie` |
 | GET | /prices/compare/:productId | comparaison par marché, du moins cher au plus cher |
 
 ## Authentification

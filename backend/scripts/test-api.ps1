@@ -28,6 +28,9 @@ Test-Api 'Produit 999'              GET  '/products/999'         $null 404
 Test-Api 'Produit abc'              GET  '/products/abc'         $null 400
 Test-Api 'Comparer produit 999'     GET  '/prices/compare/999'   $null 404
 Test-Api 'Route inconnue'           GET  '/nimportequoi'         $null 404
+Test-Api 'Recherche par produit'     GET  '/prices?q=tom'              $null 200
+Test-Api 'Filtre par categorie'       GET  '/prices?categorie=Poissons' $null 200
+
 
 # --- Inscription ---
 $mail = 'test' + (Get-Random) + '@example.com'
