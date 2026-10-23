@@ -16,3 +16,13 @@ export function texteFraicheur(jours) {
 export function libelleUnite(unite) {
   return unite === 'kg' || unite === 'litre' ? `au ${unite}` : `le ${unite}`;
 }
+
+// Date au format AAAA-MM-JJ, à l'heure de Brazzaville, il y a N jours
+export function dateIlYa(jours) {
+  const d = new Date(Date.now() - jours * 86400000);
+  return d.toLocaleDateString('sv-SE', { timeZone: 'Africa/Brazzaville' });
+}
+
+export function aujourdhui() {
+  return dateIlYa(0);
+}

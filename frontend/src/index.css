@@ -395,3 +395,102 @@ h2 {
   margin: 0.2rem 0 0;
   color: var(--gris);
 }
+
+.champ select {
+  min-height: 52px;
+  padding: 0 1rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--carte);
+  color: var(--texte);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.champ select:focus {
+  outline: 2px solid var(--vert);
+  outline-offset: 1px;
+}
+
+.champ-titre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.requis {
+  color: var(--brun);
+}
+
+.champ-verrouille {
+  display: flex;
+  flex-direction: column;
+  padding: 0.7rem 1rem;
+  border-radius: var(--rayon);
+  background: var(--sable);
+  color: var(--texte);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.champ-verrouille small {
+  color: var(--gris);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.champ-prix {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+
+.champ-prix:focus-within {
+  outline: 2px solid var(--vert);
+  outline-offset: 1px;
+}
+
+.champ-prix input {
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--texte);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.champ-prix input:focus {
+  outline: none;
+}
+
+.devise {
+  padding: 0.5rem 0.9rem;
+  border-radius: 12px;
+  background: var(--sable);
+  font-weight: 800;
+}
+
+.lien-annuler {
+  padding: 0.75rem;
+  color: var(--gris);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.bandeau-texte {
+  margin: 0 0 0.3rem;
+}
+
+.bandeau-info a {
+  color: inherit;
+  font-weight: 700;
+}
