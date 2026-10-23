@@ -1,0 +1,290 @@
+
+/* =========================================
+   PRIXMARCHÉ BRAZZAVILLE — COMPARATEUR
+   ========================================= */
+
+.comparer-page {
+  width: 100%;
+  max-width: 1150px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: #17211c;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: #f8faf9;
+  box-sizing: border-box;
+}
+
+.comparer-page * {
+  box-sizing: border-box;
+}
+
+.comparer-page header {
+  margin-bottom: 28px;
+}
+
+.comparer-page header h1 {
+  margin: 0;
+  font-size: clamp(25px, 4vw, 34px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #163c2a;
+}
+
+.comparer-page header p {
+  line-height: 1.6;
+}
+
+.comparer-page header button {
+  padding: 12px 18px;
+  border: 1px solid #dce5df;
+  border-radius: 12px;
+  background: white;
+  color: #24543a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.comparer-page button:hover {
+  filter: brightness(0.97);
+}
+
+.comparer-page button:focus-visible,
+.comparer-page input:focus-visible,
+.comparer-page a:focus-visible {
+  outline: 3px solid #86cda4;
+  outline-offset: 3px;
+}
+
+.comparer-page section {
+  margin-bottom: 24px;
+}
+
+/* Recherche et sélection des produits */
+
+.comparer-page section:nth-of-type(1) {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e4ebe6;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgb(24 60 42 / 4%);
+}
+
+.comparer-page label {
+  color: #263d30;
+  font-weight: 700;
+}
+
+.comparer-page input[type="search"] {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #dce5df;
+  border-radius: 12px;
+  background: #fbfdfb;
+  color: #17211c;
+  font-size: 15px;
+}
+
+.comparer-page input[type="search"]:focus {
+  border-color: #27834f;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(39 131 79 / 12%);
+}
+
+.comparer-page section:nth-of-type(1) button {
+  min-height: 40px;
+  padding: 10px 17px;
+  border: 1px solid #dce7df;
+  border-radius: 30px;
+  background: #f5f8f5;
+  color: #315440;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.comparer-page section:nth-of-type(1) button[class*="bg-green-700"] {
+  border-color: #176b3a;
+  background: #176b3a;
+  color: #fff;
+}
+
+/* Résumé du produit */
+
+.comparer-page section:nth-of-type(2) {
+  padding: 28px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #176b3a, #104a2b);
+  color: #fff;
+  box-shadow: 0 10px 24px rgb(23 107 58 / 15%);
+}
+
+.comparer-page section:nth-of-type(2) h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.comparer-page section:nth-of-type(2) > div:last-child {
+  margin-top: 24px;
+}
+
+.comparer-page section:nth-of-type(2) > div:last-child > div {
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 10%);
+}
+
+.comparer-page section:nth-of-type(2) > div:last-child p:last-child {
+  margin-bottom: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+/* Classement */
+
+.comparer-page section:nth-of-type(3) > div:first-child {
+  margin-bottom: 18px;
+}
+
+.comparer-page section:nth-of-type(3) h2 {
+  font-size: 21px;
+  font-weight: 800;
+  color: #193d2a;
+}
+
+.comparer-page section:nth-of-type(3) article {
+  margin-bottom: 14px;
+  padding: 22px;
+  border: 1px solid #e3eae5;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgb(20 50 32 / 4%);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.comparer-page section:nth-of-type(3) article:hover {
+  border-color: #b7d9c2;
+  transform: translateY(-2px);
+}
+
+.comparer-page section:nth-of-type(3) article h3 {
+  margin: 0;
+  color: #1d3426;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.comparer-page section:nth-of-type(3) article > div > div:first-child > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: #e9f6ed;
+  color: #176b3a;
+}
+
+.comparer-page section:nth-of-type(3) article > div > div:last-child > p:first-child {
+  margin: 0;
+  color: #176b3a;
+  font-size: clamp(22px, 3vw, 29px);
+  font-weight: 850;
+  letter-spacing: -0.6px;
+}
+
+.comparer-page section:nth-of-type(3) article a,
+.comparer-page section:nth-of-type(3) > div a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 750;
+  transition: 0.2s ease;
+}
+
+.comparer-page section:nth-of-type(3) article a {
+  border: 1px solid #f0d39b;
+  background: #fff8e9;
+  color: #87520b;
+}
+
+.comparer-page section:nth-of-type(3) > div a {
+  margin-top: 18px;
+  background: #176b3a;
+  color: white;
+}
+
+.comparer-page section:nth-of-type(3) article span {
+  font-size: 12px;
+}
+
+.comparer-page section:nth-of-type(3) article p {
+  line-height: 1.6;
+}
+
+/* Alertes et chargement */
+
+.comparer-page [role="alert"] {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.comparer-page a {
+  transition: 0.2s ease;
+}
+
+.comparer-page > p:last-child {
+  margin-top: 24px;
+  color: #68766c;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* Adaptation aux téléphones */
+
+@media (max-width: 640px) {
+  .comparer-page {
+    padding: 22px 14px;
+  }
+
+  .comparer-page section:nth-of-type(1),
+  .comparer-page section:nth-of-type(2) {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .comparer-page section:nth-of-type(3) article {
+    padding: 16px;
+    border-radius: 15px;
+  }
+
+  .comparer-page section:nth-of-type(3) article > div {
+    gap: 14px;
+  }
+
+  .comparer-page section:nth-of-type(3) article > div > div:last-child > p:first-child {
+    font-size: 23px;
+  }
+
+  .comparer-page header {
+    gap: 16px;
+  }
+
+  .comparer-page header button {
+    width: 100%;
+  }
+}
