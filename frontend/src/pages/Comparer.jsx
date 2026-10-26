@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { formatPrix, texteFraicheur } from '../utils.js';
@@ -10,6 +10,7 @@ export default function Comparer() {
   const [comparaison, setComparaison] = useState(null);
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState('');
+  const chipActif = useRef(null);
 
   // La liste des produits, une seule fois
   useEffect(() => {
@@ -61,6 +62,13 @@ export default function Comparer() {
     };
   }, [idChoisi]);
 
+    // Fait défiler la rangée jusqu'au produit choisi
+  useEffect(() => {
+    if (chipActif.current) {
+      chipActif.current.scrollIntoView({ inline: 'center', block: 'nearest' });
+    }
+  }, [idChoisi, produitsCharges]);
+
   function choisir(id) {
     setParams({ produit: String(id) }, { replace: true });
   }
@@ -86,6 +94,7 @@ export default function Comparer() {
         {produits.map((p) => (
           <button
             key={p.id}
+            ref={p.id === idChoisi ? 'chip actif' : 'chip'}
             type="button"
             className={p.id === idChoisi ? 'chip actif' : 'chip'}
             aria-pressed={p.id === idChoisi}

@@ -1,8 +1,9 @@
+import { Link } from 'react-router-dom';
 import { formatPrix, texteFraicheur, libelleUnite } from '../utils.js';
 
 export default function CartePrix({ prix }) {
   return (
-    <article className="carte-prix">
+    <Link to={`/comparer?produit=${prix.product_id}`} className="carte-prix carte-lien">
       <div className="carte-haut">
         <div>
           <h4 className="carte-produit">
@@ -19,6 +20,7 @@ export default function CartePrix({ prix }) {
       <p className="carte-montant">
         <strong>{formatPrix(prix.prix)}</strong> FCFA
       </p>
-    </article>
+      <span className="carte-comparer">Comparer les marchés ›</span>
+    </Link>
   );
 }
