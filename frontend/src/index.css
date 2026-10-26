@@ -494,3 +494,101 @@ h2 {
   color: inherit;
   font-weight: 700;
 }
+
+.etiquette {
+  margin: 0 0 0.4rem;
+  color: var(--brun);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.carte-prix.meilleur {
+  border-color: var(--vert);
+  background: var(--vert-pale);
+}
+
+.badge-meilleur {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--vert);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-ecart {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--sable);
+  color: var(--gris);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ligne-prix {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ligne-prix .carte-montant span {
+  font-size: 0.9rem;
+}
+
+.economie {
+  margin: 0.5rem 0 0;
+  color: var(--vert-fonce);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.a-actualiser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  background: var(--sable);
+  color: var(--gris);
+  font-size: 0.85rem;
+}
+
+.a-actualiser a {
+  color: var(--vert);
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.legende {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+
+.legende-ligne {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0.6rem 0;
+  font-size: 0.9rem;
+}
+
+.legende-ligne .point {
+  flex: 0 0 auto;
+  margin-top: 0.35rem;
+}
+
+.legende-ligne strong {
+  display: block;
+}
