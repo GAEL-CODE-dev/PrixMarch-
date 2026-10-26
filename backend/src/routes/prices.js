@@ -14,6 +14,13 @@ function today() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Africa/Brazzaville' });
 }
 
+// Date AAAA-MM-JJ, à l'heure de Brazzaville, il y a N jours
+function dateIlYa(jours) {
+  return new Date(Date.now() - jours * 86400000).toLocaleDateString('sv-SE', {
+    timeZone: 'Africa/Brazzaville',
+  });
+}
+
 function isValidDate(str) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
   const d = new Date(`${str}T00:00:00Z`);
@@ -240,6 +247,104 @@ router.get('/habituel/:productId', (req, res) => {
     mediane: mediane(valeurs),
     bas: quantile(valeurs, 0.25),
     haut: quantile(valeurs, 0.75),
+  });
+});
+
+// Historique des prix d'un produit (écran Évolution)
+router.get('/history/:productId', (req, res) => {
+  const productId = Number(req.params.productId);
+  if (!Number.isInteger(productId)) {
+    return res.status(400).json({ erreur: 'Identifiant invalide' });
+  }
+
+  const produit = db
+    .prepare('SELECT id, nom, unite, categorie FROM products WHERE id = ?')
+    .get(productId);
+  if (!produit) {
+    return res.status(404).json({ erreur: 'Produit introuvable' });
+  }
+
+  const jours = Math.min(Math.max(parseInt(req.query.jours, 10) || 30, 1), 365);
+  const debut = dateIlYa(jours);
+
+  const lignes = db
+    .prepare(
+      `SELECT p.id, p.market_id, m.nom AS marche, p.prix, p.date_releve
+       FROM prices p
+       JOIN markets m ON m.id = p.market_id
+       WHERE p.product_id = ? AND p.date_releve >= ?
+       ORDER BY p.date_releve ASC, p.id ASC`
+    )
+    .all(productId, debut);
+
+  // Les marchés qui ont des relevés sur la période (pour les boutons de filtre)
+  const vus = new Set();
+  const marches = [];
+  for (const l of lignes) {
+    if (!vus.has(l.market_id)) {
+      vus.add(l.market_id);
+      marches.push({ id: l.market_id, nom: l.marche });
+    }
+  }
+  marches.sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+
+  // Filtre éventuel sur un seul marché
+  const marcheId = req.query.marche ? Number(req.query.marche) : null;
+  const selection = marcheId ? lignes.filter((l) => l.market_id === marcheId) : lignes;
+
+  // Un seul prix par marché et par jour : le dernier saisi
+  const parJour = new Map();
+  for (const l of selection) {
+    parJour.set(`${l.date_releve}|${l.market_id}`, l);
+  }
+  const points = [...parJour.values()].map((l) => ({
+    date: l.date_releve,
+    market_id: l.market_id,
+    marche: l.marche,
+    prix: l.prix,
+  }));
+
+  if (points.length === 0) {
+    return res.json({ produit, jours, marches, points: [], stats: null });
+  }
+
+  // Premier et dernier prix de chaque marché sur la période (points en ordre chronologique)
+  const parMarche = new Map();
+  for (const p of points) {
+    const e = parMarche.get(p.market_id) || { premier: p, dernier: p, n: 0 };
+    e.dernier = p;
+    e.n += 1;
+    parMarche.set(p.market_id, e);
+  }
+  const entrees = [...parMarche.values()];
+  const moyenne = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+
+  const actuel = Math.round(moyenne(entrees.map((e) => e.dernier.prix)));
+
+  // Variation : seulement les marchés qui ont au moins deux relevés sur la période
+  const evolutifs = entrees.filter((e) => e.n >= 2);
+  let variation = null;
+  if (evolutifs.length > 0) {
+    const avant = moyenne(evolutifs.map((e) => e.premier.prix));
+    const apres = moyenne(evolutifs.map((e) => e.dernier.prix));
+    variation = Math.round(((apres - avant) / avant) * 1000) / 10;
+  }
+
+  const bas = points.reduce((m, p) => (p.prix < m.prix ? p : m), points[0]);
+  const haut = points.reduce((m, p) => (p.prix > m.prix ? p : m), points[0]);
+
+  res.json({
+    produit,
+    jours,
+    marches,
+    points,
+    stats: {
+      actuel,
+      nb_marches: entrees.length,
+      variation_pct: variation,
+      bas: { prix: bas.prix, date: bas.date, marche: bas.marche },
+      haut: { prix: haut.prix, date: haut.date, marche: haut.marche },
+    },
   });
 });
 
