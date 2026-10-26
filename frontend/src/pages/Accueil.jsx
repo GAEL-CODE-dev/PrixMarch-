@@ -9,9 +9,11 @@ export default function Accueil() {
   const [categorie, setCategorie] = useState('');
   const [recherche, setRecherche] = useState('');
   const [rechercheEnvoyee, setRechercheEnvoyee] = useState('');
-  const [prix, setPrix] = useState([]);
-  const [chargement, setChargement] = useState(true);
-  const [erreur, setErreur] = useState('');
+
+  // Clé de la requête en cours : sert à savoir si le résultat affiché
+  // correspond encore aux filtres sélectionnés.
+  const cle = `${categorie}|${rechercheEnvoyee}`;
+  const [resultat, setResultat] = useState({ cle: null, prix: [], erreur: '' });
 
   // Marchés et catégories : une seule fois au chargement
   useEffect(() => {
@@ -32,8 +34,6 @@ export default function Accueil() {
   // Derniers prix, selon la catégorie et la recherche
   useEffect(() => {
     let annule = false;
-    setChargement(true);
-    setErreur('');
 
     const params = new URLSearchParams({ limit: '20' });
     if (categorie) params.set('categorie', categorie);
@@ -41,19 +41,21 @@ export default function Accueil() {
 
     api(`/prices?${params}`)
       .then((data) => {
-        if (!annule) setPrix(data);
+        if (!annule) setResultat({ cle, prix: data, erreur: '' });
       })
       .catch((e) => {
-        if (!annule) setErreur(e.message);
-      })
-      .finally(() => {
-        if (!annule) setChargement(false);
+        if (!annule) setResultat({ cle, prix: [], erreur: e.message });
       });
 
     return () => {
       annule = true;
     };
-  }, [categorie, rechercheEnvoyee]);
+  }, [cle, categorie, rechercheEnvoyee]);
+
+  const aJour = resultat.cle === cle;
+  const chargement = !aJour;
+  const prix = aJour ? resultat.prix : [];
+  const erreur = aJour ? resultat.erreur : '';
 
   return (
     <section>
@@ -102,12 +104,14 @@ export default function Accueil() {
 
       <h3 className="titre-liste">Derniers prix ajoutés</h3>
 
-      {chargement && prix.length === 0 && <p className="info">Chargement...</p>}
+      {chargement && <p className="info">Chargement...</p>}
       {erreur && <p className="info erreur">{erreur}</p>}
       {!chargement && !erreur && prix.length === 0 && (
         <p className="info">Aucun prix trouvé.</p>
       )}
-      {!erreur && prix.map((p) => <CartePrix key={p.id} prix={p} />)}
+      {prix.map((p) => (
+        <CartePrix key={p.id} prix={p} />
+      ))}
 
       <Link to="/ajouter" className="bouton-flottant">
         + Ajouter un prix

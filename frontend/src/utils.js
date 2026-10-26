@@ -26,3 +26,22 @@ export function dateIlYa(jours) {
 export function aujourdhui() {
   return dateIlYa(0);
 }
+
+// "2026-10-21" -> "21 oct."
+export function formatDateCourte(date) {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  });
+}
+
+// "2026-10-21" -> "21 octobre 2026"
+export function formatDateLongue(date) {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}

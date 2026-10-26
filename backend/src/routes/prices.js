@@ -2,57 +2,21 @@ const express = require('express');
 const db = require('../db/database');
 const { requireAuth } = require('../middleware/auth');
 const { priceLimiter } = require('../middleware/limits');
+const {
+  PRIX_MAX,
+  JOURS_MAX,
+  NB_MIN_RELEVES,
+  today,
+  dateIlYa,
+  isValidDate,
+  joursDepuis,
+  fraicheur,
+  mediane,
+  quantile,
+  estHorsFourchette,
+} = require('../domain/prix');
 
 const router = express.Router();
-
-const PRIX_MAX = 1000000; // garde-fou contre les fautes de frappe
-const JOURS_MAX = 90; // un rélévé plus vieux est refusé
-const FACTEUR_ECART = 5; //prix refusé s'il dépasse 5x la médiane (ou en dessous de 1/5)
-const NB_MIN_RELEVES = 5; // nombres de relevés minimun pour activer ce controle
-
-function today() {
-  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Africa/Brazzaville' });
-}
-
-// Date AAAA-MM-JJ, à l'heure de Brazzaville, il y a N jours
-function dateIlYa(jours) {
-  return new Date(Date.now() - jours * 86400000).toLocaleDateString('sv-SE', {
-    timeZone: 'Africa/Brazzaville',
-  });
-}
-
-function isValidDate(str) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
-  const d = new Date(`${str}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === str;
-}
-
-function joursDepuis(dateStr) {
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
-}
-
-// Même code couleur que la maquette : vert / orange / gris
-function fraicheur(jours) {
-  if (jours < 3) return 'recent';
-  if (jours <= 14) return 'moyen';
-  return 'ancien';
-}
-
-function mediane(valeurs) {
-  const tri = [...valeurs].sort((a, b) => a - b);
-  const milieu = Math.floor(tri.length / 2);
-  return tri.length % 2 ? tri[milieu] : Math.round((tri[milieu - 1] + tri[milieu]) / 2);
-}
-
-// Valeur sous laquelle se trouve une part q des prix (0.25 = premier quartile)
-function quantile(valeurs, q) {
-  const tri = [...valeurs].sort((a, b) => a - b);
-  const pos = (tri.length - 1) * q;
-  const bas = Math.floor(pos);
-  const haut = Math.ceil(pos);
-  return Math.round(tri[bas] + (tri[haut] - tri[bas]) * (pos - bas));
-}
 
 // Les 30 derniers prix relevés pour un produit
 function prixRecents(productId) {
@@ -151,11 +115,11 @@ router.post('/', requireAuth, priceLimiter, (req, res) => {
   }
 
   // Prix incohérent par rapport aux derniers relevés du produit
-    const recents = prixRecents(productId);
+  const recents = prixRecents(productId);
 
   if (recents.length >= NB_MIN_RELEVES) {
     const med = mediane(recents);
-    if (prixNum > med * FACTEUR_ECART || prixNum < med / FACTEUR_ECART) {
+    if (estHorsFourchette(prixNum, med)) {
       return res.status(422).json({
         erreur: `Ce prix (${prixNum} FCFA) est très éloigné des prix habituels (environ ${med} FCFA). Vérifie le montant.`,
         mediane: med,

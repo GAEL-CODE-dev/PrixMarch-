@@ -1,8 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../api.js';
+import { AuthContext } from './context.js';
 
 const CLE = 'prixmarche_token';
-const AuthContext = createContext(null);
 
 function lireToken() {
   try {
@@ -85,10 +85,4 @@ export function AuthProvider({ children }) {
   );
 
   return <AuthContext.Provider value={valeur}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
-  return ctx;
 }

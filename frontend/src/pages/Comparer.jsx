@@ -7,9 +7,8 @@ export default function Comparer() {
   const [params, setParams] = useSearchParams();
   const [produits, setProduits] = useState([]);
   const [produitsCharges, setProduitsCharges] = useState(false);
-  const [comparaison, setComparaison] = useState(null);
-  const [chargement, setChargement] = useState(false);
-  const [erreur, setErreur] = useState('');
+  const [erreurProduits, setErreurProduits] = useState('');
+  const [resultat, setResultat] = useState({ id: null, comparaison: null, erreur: '' });
   const chipActif = useRef(null);
 
   // La liste des produits, une seule fois
@@ -20,7 +19,7 @@ export default function Comparer() {
         if (!annule) setProduits(p);
       })
       .catch((e) => {
-        if (!annule) setErreur(e.message);
+        if (!annule) setErreurProduits(e.message);
       })
       .finally(() => {
         if (!annule) setProduitsCharges(true);
@@ -40,21 +39,12 @@ export default function Comparer() {
     if (idChoisi === null) return;
 
     let annule = false;
-    setChargement(true);
-    setErreur('');
-
     api(`/prices/compare/${idChoisi}`)
       .then((data) => {
-        if (!annule) setComparaison(data);
+        if (!annule) setResultat({ id: idChoisi, comparaison: data, erreur: '' });
       })
       .catch((e) => {
-        if (!annule) {
-          setComparaison(null);
-          setErreur(e.message);
-        }
-      })
-      .finally(() => {
-        if (!annule) setChargement(false);
+        if (!annule) setResultat({ id: idChoisi, comparaison: null, erreur: e.message });
       });
 
     return () => {
@@ -62,7 +52,7 @@ export default function Comparer() {
     };
   }, [idChoisi]);
 
-    // Fait défiler la rangée jusqu'au produit choisi
+  // Fait défiler la rangée jusqu'au produit choisi
   useEffect(() => {
     if (chipActif.current) {
       chipActif.current.scrollIntoView({ inline: 'center', block: 'nearest' });
@@ -77,12 +67,15 @@ export default function Comparer() {
     return <p className="info">Chargement...</p>;
   }
   if (produits.length === 0) {
-    return <p className="info erreur">{erreur || 'Aucun produit disponible.'}</p>;
+    return <p className="info erreur">{erreurProduits || 'Aucun produit disponible.'}</p>;
   }
 
   // On n'affiche que la comparaison qui correspond au produit choisi
-  const aJour = comparaison !== null && comparaison.produit.id === idChoisi;
-  const resultats = aJour ? comparaison.resultats : [];
+  const aJour = idChoisi !== null && resultat.id === idChoisi;
+  const chargement = idChoisi !== null && !aJour;
+  const erreur = aJour ? resultat.erreur : '';
+  const affichable = aJour && resultat.erreur === '' && resultat.comparaison !== null;
+  const resultats = affichable ? resultat.comparaison.resultats : [];
   const n = resultats.length;
   const meilleur = resultats[0];
   const ecartMax = n > 1 ? resultats[n - 1].prix - meilleur.prix : 0;
@@ -94,7 +87,7 @@ export default function Comparer() {
         {produits.map((p) => (
           <button
             key={p.id}
-            ref={p.id === idChoisi ? 'chip actif' : 'chip'}
+            ref={p.id === idChoisi ? chipActif : null}
             type="button"
             className={p.id === idChoisi ? 'chip actif' : 'chip'}
             aria-pressed={p.id === idChoisi}
@@ -110,9 +103,9 @@ export default function Comparer() {
           {erreur}
         </p>
       )}
-      {chargement && !aJour && <p className="info">Chargement...</p>}
+      {chargement && <p className="info">Chargement...</p>}
 
-      {aJour && n === 0 && (
+      {affichable && n === 0 && (
         <div className="carte-profil">
           <p className="profil-nom">Aucun prix relevé</p>
           <p className="profil-email">

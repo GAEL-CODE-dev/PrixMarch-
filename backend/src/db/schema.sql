@@ -32,3 +32,6 @@ CREATE TABLE IF NOT EXISTS prices (
 
 CREATE INDEX IF NOT EXISTS idx_prices_product_market_date
   ON prices (product_id, market_id, date_releve);
+
+-- L'index unique anti-doublon (user_id, product_id, market_id, date_releve)
+-- est créé par database.js, après nettoyage des éventuels doublons existants.

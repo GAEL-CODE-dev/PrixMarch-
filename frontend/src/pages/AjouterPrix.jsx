@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { useAuth } from '../auth/AuthContext.jsx';
+import { useAuth } from '../auth/useAuth.js';
 import { aujourdhui, dateIlYa, formatPrix } from '../utils.js';
 
 const CLE_MARCHE = 'prixmarche_dernier_marche';
@@ -43,7 +43,7 @@ export default function AjouterPrix() {
   const [succes, setSucces] = useState('');
   const [lienComparaison, setLienComparaison] = useState('');
   const [envoi, setEnvoi] = useState(false);
-  const [habituel, setHabituel] = useState(null);
+  const [habituel, setHabituel] = useState({ produitId: null, donnees: null });
 
   useEffect(() => {
     let annule = false;
@@ -68,20 +68,17 @@ export default function AjouterPrix() {
     };
   }, []);
 
-    // Fourchette habituelle du produit choisi
+  // Fourchette habituelle du produit choisi
   useEffect(() => {
-    if (!produitId) {
-      setHabituel(null);
-      return;
-    }
+    if (!produitId) return;
 
     let annule = false;
     api(`/prices/habituel/${produitId}`)
       .then((data) => {
-        if (!annule) setHabituel(data);
+        if (!annule) setHabituel({ produitId, donnees: data });
       })
       .catch(() => {
-        if (!annule) setHabituel(null);
+        if (!annule) setHabituel({ produitId, donnees: null });
       });
 
     return () => {
@@ -92,9 +89,10 @@ export default function AjouterPrix() {
   const produit = produits.find((p) => String(p.id) === produitId);
   const marche = marches.find((m) => String(m.id) === marcheId);
 
-    // On n'utilise la fourchette que si elle correspond au produit choisi
-  const habituelAJour = habituel !== null && habituel.product_id === Number(produitId);
-  const fourchette = habituelAJour && habituel.bas !== null ? habituel : null;
+  // On n'utilise la fourchette que si elle correspond au produit choisi
+  const habituelAJour =
+    produitId !== '' && habituel.produitId === produitId && habituel.donnees !== null;
+  const fourchette = habituelAJour && habituel.donnees.bas !== null ? habituel.donnees : null;
   const prixSaisi = Number(prix);
   const horsFourchette =
     fourchette !== null &&

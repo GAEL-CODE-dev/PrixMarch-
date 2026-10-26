@@ -59,7 +59,7 @@ router.post('/register', registerLimiter, async (req, res, next) => {
 });
 
 
-router.post('/login', registerLimiter, async (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res, next) => {
   try {
     const body = req.body || {};
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
