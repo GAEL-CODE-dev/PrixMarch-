@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { aujourdhui, dateIlYa, formatPrix } from '../utils.js';
@@ -25,6 +25,7 @@ function ecrireDernierMarche(id) {
 export default function AjouterPrix() {
   const { token, deconnexion } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   const [produits, setProduits] = useState([]);
   const [marches, setMarches] = useState([]);
@@ -32,13 +33,15 @@ export default function AjouterPrix() {
   const [erreurChargement, setErreurChargement] = useState('');
 
   const [dernierMarche] = useState(lireDernierMarche);
-  const [produitId, setProduitId] = useState('');
-  const [marcheId, setMarcheId] = useState(dernierMarche);
+  // Préremplissage depuis l'adresse : /ajouter?produit=3&marche=6
+  const [produitId, setProduitId] = useState(() => params.get('produit') || '');
+  const [marcheId, setMarcheId] = useState(() => params.get('marche') || dernierMarche);
   const [prix, setPrix] = useState('');
   const [date, setDate] = useState(aujourdhui);
 
   const [erreur, setErreur] = useState('');
   const [succes, setSucces] = useState('');
+  const [lienComparaison, setLienComparaison] = useState('');
   const [envoi, setEnvoi] = useState(false);
 
   useEffect(() => {
@@ -48,7 +51,8 @@ export default function AjouterPrix() {
         if (annule) return;
         setProduits(p);
         setMarches(m);
-        // le marché mémorisé n'existe peut-être plus
+        // un produit ou un marché inconnu (adresse modifiée, marché mémorisé supprimé)
+        setProduitId((id) => (p.some((x) => String(x.id) === id) ? id : ''));
         setMarcheId((id) => (m.some((x) => String(x.id) === id) ? id : ''));
       })
       .catch((e) => {
@@ -91,6 +95,7 @@ export default function AjouterPrix() {
       });
       ecrireDernierMarche(marcheId);
       setSucces(`Prix enregistré : ${produit.nom}, ${marche.nom}, ${formatPrix(prixNum)} FCFA`);
+      setLienComparaison(`/comparer?produit=${produitId}`);
       // on garde le marché et la date pour enchaîner les produits
       setProduitId('');
       setPrix('');
@@ -123,7 +128,10 @@ export default function AjouterPrix() {
       {succes && (
         <div className="bandeau-info" role="status">
           <p className="bandeau-texte">{succes}</p>
-          <Link to="/">Voir les derniers prix</Link>
+          <p className="bandeau-liens">
+            <Link to={lienComparaison}>Comparer ce produit</Link>
+            <Link to="/">Voir les derniers prix</Link>
+          </p>
         </div>
       )}
 

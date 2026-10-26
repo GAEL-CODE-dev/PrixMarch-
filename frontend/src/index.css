@@ -592,3 +592,10 @@ h2 {
 .legende-ligne strong {
   display: block;
 }
+
+.bandeau-liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0;
+}

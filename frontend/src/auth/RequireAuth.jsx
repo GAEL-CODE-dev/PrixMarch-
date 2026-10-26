@@ -14,7 +14,7 @@ export default function RequireAuth({ children, message = 'Connecte-toi pour con
       <Navigate
         to="/compte"
         replace
-        state={{ from: location.pathname, message }}
+                state={{ from: `${location.pathname}${location.search}`, message }}
       />
     );
   }
