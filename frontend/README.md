@@ -1,64 +1,23 @@
-# React + Vite
+# Interface PrixMarché
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
-## Lancer le projet en local
-
-Prérequis : Node.js (version LTS).
-
-### API
+Interface React (Vite) de l'application PrixMarché. Voir le [README principal](../README.md)
+pour le contexte, le démarrage complet et le déploiement.
 
 ```powershell
-cd backend
 npm install
+npm run dev     # http://localhost:5173, proxy /api vers http://localhost:3000
+npm run lint
+npm run build   # génère dist/, servi automatiquement par le backend
 ```
 
-Crée `backend/.env` à partir de `backend/.env.example` et remplis `JWT_SECRET` :
+Routes :
 
-```powershell
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-```
+| Adresse | Écran |
+|---|---|
+| `/` | derniers prix, recherche, catégories |
+| `/comparer?produit=3` | comparaison entre marchés |
+| `/evolution?produit=3&jours=30&marche=1` | graphique d'évolution |
+| `/ajouter` | ajout d'un prix (connexion requise) |
+| `/compte` | connexion, inscription, profil |
 
-Avec une version récente de npm, autorise le script d'installation de better-sqlite3 :
-
-```powershell
-npm install-scripts approve better-sqlite3
-npm rebuild better-sqlite3
-```
-
-Puis :
-
-```powershell
-npm run seed:demo   # marchés, produits et prix de démonstration
-npm run dev         # http://localhost:3000
-```
-
-### Interface
-
-```powershell
-cd frontend
-npm install
-npm run dev         # http://localhost:5173
-```
-
-## Fonctionnalités
-
-- Consulter les derniers prix, avec recherche et filtre par catégorie
-- Comparer un produit entre les marchés, du moins cher au plus cher, avec la fraîcheur de chaque relevé
-- Créer un compte et se connecter
-- Ajouter un prix : marché mémorisé, unité automatique, fourchette de prix habituel
-- Mettre à jour un prix ancien en un geste
-- À venir : graphique d'évolution des prix
+Variable optionnelle : `VITE_API_URL` (par défaut `/api`).

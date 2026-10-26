@@ -29,3 +29,7 @@ user_id → users
 prix (entier, en FCFA)
 date_releve
 created_at
+
+Contrainte : un seul relevé par personne, produit, marché et date
+(index unique `idx_prices_unique_releve`). Les relevés de démonstration
+(`user_id` NULL) ne sont pas concernés.

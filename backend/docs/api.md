@@ -6,7 +6,7 @@ Base : `http://localhost:3000/api`
 
 | Méthode | URL | Rôle |
 |---|---|---|
-| GET | /health | état du serveur |
+| GET | /health | état du serveur et accès à la base (503 si la base est indisponible) |
 | GET | /markets | liste des marchés |
 | GET | /products | produits (?q=, ?categorie=) |
 | GET | /products/categories | catégories |
