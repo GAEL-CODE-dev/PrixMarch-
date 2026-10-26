@@ -43,6 +43,7 @@ export default function AjouterPrix() {
   const [succes, setSucces] = useState('');
   const [lienComparaison, setLienComparaison] = useState('');
   const [envoi, setEnvoi] = useState(false);
+  const [habituel, setHabituel] = useState(null);
 
   useEffect(() => {
     let annule = false;
@@ -67,8 +68,38 @@ export default function AjouterPrix() {
     };
   }, []);
 
+    // Fourchette habituelle du produit choisi
+  useEffect(() => {
+    if (!produitId) {
+      setHabituel(null);
+      return;
+    }
+
+    let annule = false;
+    api(`/prices/habituel/${produitId}`)
+      .then((data) => {
+        if (!annule) setHabituel(data);
+      })
+      .catch(() => {
+        if (!annule) setHabituel(null);
+      });
+
+    return () => {
+      annule = true;
+    };
+  }, [produitId]);
+
   const produit = produits.find((p) => String(p.id) === produitId);
   const marche = marches.find((m) => String(m.id) === marcheId);
+
+    // On n'utilise la fourchette que si elle correspond au produit choisi
+  const habituelAJour = habituel !== null && habituel.product_id === Number(produitId);
+  const fourchette = habituelAJour && habituel.bas !== null ? habituel : null;
+  const prixSaisi = Number(prix);
+  const horsFourchette =
+    fourchette !== null &&
+    prixSaisi > 0 &&
+    (prixSaisi < fourchette.bas || prixSaisi > fourchette.haut);
 
   async function soumettre(e) {
     e.preventDefault();
@@ -201,6 +232,20 @@ export default function AjouterPrix() {
             />
             <span className="devise">FCFA</span>
           </div>
+                    {habituelAJour && (
+            <span className="indice">
+              {fourchette
+                ? fourchette.bas === fourchette.haut
+                  ? `Prix habituel : environ ${formatPrix(fourchette.bas)} FCFA`
+                  : `Prix habituel : ${formatPrix(fourchette.bas)} - ${formatPrix(fourchette.haut)} FCFA`
+                : 'Pas encore assez de relevés pour indiquer un prix habituel.'}
+            </span>
+          )}
+          {horsFourchette && (
+            <span className="indice indice-alerte">
+              Ce prix sort de la fourchette habituelle : vérifie-le avant d'enregistrer.
+            </span>
+          )}
         </label>
 
         <label className="champ">

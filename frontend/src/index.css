@@ -599,3 +599,14 @@ h2 {
   gap: 1rem;
   margin: 0;
 }
+
+.indice {
+  color: var(--gris);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.indice-alerte {
+  color: var(--brun);
+  font-weight: 600;
+}

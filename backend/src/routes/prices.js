@@ -38,6 +38,23 @@ function mediane(valeurs) {
   return tri.length % 2 ? tri[milieu] : Math.round((tri[milieu - 1] + tri[milieu]) / 2);
 }
 
+// Valeur sous laquelle se trouve une part q des prix (0.25 = premier quartile)
+function quantile(valeurs, q) {
+  const tri = [...valeurs].sort((a, b) => a - b);
+  const pos = (tri.length - 1) * q;
+  const bas = Math.floor(pos);
+  const haut = Math.ceil(pos);
+  return Math.round(tri[bas] + (tri[haut] - tri[bas]) * (pos - bas));
+}
+
+// Les 30 derniers prix relevés pour un produit
+function prixRecents(productId) {
+  return db
+    .prepare('SELECT prix FROM prices WHERE product_id = ? ORDER BY date_releve DESC, id DESC LIMIT 30')
+    .all(productId)
+    .map((r) => r.prix);
+}
+
 // Derniers prix ajoutés (filtres : product_id, market_id, q, categorie, limit)
 router.get('/', (req, res) => {
   const { product_id, market_id, q, categorie } = req.query;
@@ -127,10 +144,7 @@ router.post('/', requireAuth, priceLimiter, (req, res) => {
   }
 
   // Prix incohérent par rapport aux derniers relevés du produit
-  const recents = db
-    .prepare('SELECT prix FROM prices WHERE product_id = ? ORDER BY date_releve DESC, id DESC LIMIT 30')
-    .all(productId)
-    .map((r) => r.prix);
+    const recents = prixRecents(productId);
 
   if (recents.length >= NB_MIN_RELEVES) {
     const med = mediane(recents);
@@ -199,6 +213,34 @@ router.get('/compare/:productId', (req, res) => {
   });
 
   res.json({ produit, resultats });
+});
+
+// Fourchette habituelle d'un produit (quartiles des 30 derniers relevés)
+router.get('/habituel/:productId', (req, res) => {
+  const productId = Number(req.params.productId);
+  if (!Number.isInteger(productId)) {
+    return res.status(400).json({ erreur: 'Identifiant invalide' });
+  }
+
+  const produit = db.prepare('SELECT id FROM products WHERE id = ?').get(productId);
+  if (!produit) {
+    return res.status(404).json({ erreur: 'Produit introuvable' });
+  }
+
+  const valeurs = prixRecents(productId);
+
+  // Pas assez de relevés : on ne donne pas de fourchette
+  if (valeurs.length < NB_MIN_RELEVES) {
+    return res.json({ product_id: productId, nb_releves: valeurs.length, mediane: null, bas: null, haut: null });
+  }
+
+  res.json({
+    product_id: productId,
+    nb_releves: valeurs.length,
+    mediane: mediane(valeurs),
+    bas: quantile(valeurs, 0.25),
+    haut: quantile(valeurs, 0.75),
+  });
 });
 
 module.exports = router;
