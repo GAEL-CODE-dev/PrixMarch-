@@ -53,3 +53,12 @@ cd frontend
 npm install
 npm run dev         # http://localhost:5173
 ```
+
+## Fonctionnalités
+
+- Consulter les derniers prix, avec recherche et filtre par catégorie
+- Comparer un produit entre les marchés, du moins cher au plus cher, avec la fraîcheur de chaque relevé
+- Créer un compte et se connecter
+- Ajouter un prix : marché mémorisé, unité automatique, fourchette de prix habituel
+- Mettre à jour un prix ancien en un geste
+- À venir : graphique d'évolution des prix
