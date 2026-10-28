@@ -13,8 +13,20 @@ const pkg = require('../package.json');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Derrière un proxy (Render, etc.) : TRUST_PROXY=1 dans les variables d'environnement
-if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY));
+// Derrière un proxy (Render, Railway, Fly.io, Nginx) : TRUST_PROXY=1, c'est-à-dire
+// le nombre de proxies de confiance. Une valeur non numérique est ignorée pour
+// éviter qu'Express n'interprète n'importe quelle chaîne comme une adresse IP.
+const trustProxy = process.env.TRUST_PROXY;
+if (trustProxy) {
+  const sauts = Number(trustProxy);
+  if (Number.isInteger(sauts) && sauts > 0) {
+    app.set('trust proxy', sauts);
+  } else {
+    console.warn(
+      `TRUST_PROXY ignoré (attendu : un nombre de proxies, ex. 1) : « ${trustProxy} »`
+    );
+  }
+}
 
 // Origines autorisées : liste séparée par des virgules, ou * pour tout ouvrir
 const origines = CORS_ORIGIN.split(',')
@@ -43,7 +55,11 @@ app.use(
     },
   })
 );
-app.use(cors({ origin: origines.includes('*') ? true : origines }));
+// Sans origine configurée, on n'active pas CORS : l'interface est servie par
+// l'API et les requêtes sont de même origine (aucun en-tête CORS nécessaire).
+if (origines.length > 0) {
+  app.use(cors({ origin: origines.includes('*') ? true : origines }));
+}
 // Pas de corps compressé : l'API n'en reçoit pas et cela évite toute
 // décompression inutile (surface d'attaque et coût CPU).
 app.use(express.json({ limit: '10kb', inflate: false }));
@@ -111,9 +127,43 @@ app.use((err, req, res, next) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  // Données initiales (marchés + produits) sur un volume vide. Le seed est
+  // idempotent : le relancer ne crée pas de doublon.
+  if (process.env.SEED_ON_START === 'true') {
+    require('./db/seed');
+  }
+
+  const server = app.listen(PORT, () => {
     console.log(`API lancée sur http://localhost:${PORT}`);
   });
+
+  // Arrêt propre : on laisse les requêtes en cours se terminer, puis on ferme
+  // SQLite (indispensable avec un journal WAL pour ne rien perdre).
+  let arretEnCours = false;
+  function arreter(signal) {
+    if (arretEnCours) return;
+    arretEnCours = true;
+    console.log(`${signal} reçu : arrêt du serveur...`);
+
+    const forcer = setTimeout(() => {
+      console.error('Arrêt forcé après 10 s.');
+      process.exit(1);
+    }, 10000);
+    forcer.unref();
+
+    server.close(() => {
+      try {
+        db.close();
+      } catch (err) {
+        console.error('Fermeture de la base impossible :', err);
+      }
+      clearTimeout(forcer);
+      process.exit(0);
+    });
+  }
+
+  process.on('SIGTERM', () => arreter('SIGTERM'));
+  process.on('SIGINT', () => arreter('SIGINT'));
 }
 
 module.exports = app;

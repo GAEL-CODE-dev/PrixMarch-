@@ -24,10 +24,12 @@ Application mobile-first pour comparer les prix des vivres entre les marchés de
 
 ```
 prixmarche/
+├── Dockerfile            image unique : API + interface compilée
+├── render.yaml           blueprint Render (disque persistant inclus)
 ├── backend/
 │   ├── src/domain/       règles métier pures (médiane, quartiles, dates)
 │   ├── src/routes/       auth, markets, products, prices
-│   ├── src/db/           schéma, connexion, données de démonstration
+│   ├── src/db/           schéma, connexion, seed, sauvegarde
 │   ├── test/             tests unitaires et d'intégration (node:test)
 │   └── docs/             API et modèle de données
 ├── frontend/
@@ -107,21 +109,114 @@ cd backend
 
 ## Production
 
-1. Construire l'interface : `cd frontend && npm run build`
-2. Renseigner les variables d'environnement du backend :
-   - `NODE_ENV=production`
-   - `JWT_SECRET` (32 caractères minimum, obligatoire)
-   - `JWT_EXPIRES_IN` (par défaut `7d`)
-   - `CORS_ORIGIN` (origine publique de l'interface, séparée par des virgules).
-     Obligatoire en production ; `*` est refusé au démarrage.
-   - `TRUST_PROXY=1` derrière un proxy (Render, Nginx, etc.)
-   - ne pas laisser `RATE_LIMIT=off`
-3. Démarrer : `cd backend && npm start`
+Le plus simple : **un seul service**, l'API Express sert l'interface React
+compilée (`frontend/dist`). Le `Dockerfile` à la racine construit les deux.
+La base SQLite doit vivre sur un **disque persistant**, sinon les comptes et les
+prix disparaissent à chaque redéploiement.
 
-Si `frontend/dist` existe, le backend sert directement l'interface et renvoie `index.html`
-sur les routes inconnues (rechargement de `/comparer`, etc.). La route `GET /api/health`
-vérifie aussi l'accès à la base (503 en cas de problème) et renvoie la version,
-l'environnement et l'heure du serveur.
+### Render (déploiement clé en main)
+
+1. Pousse le dépôt sur GitHub (les changements ne sont pas encore commités).
+2. Render → **New** → **Blueprint** → choisis le dépôt : `render.yaml` est détecté.
+3. Garde le plan **Starter** : les disques persistants ne sont pas disponibles
+   sur le plan gratuit.
+4. Déploie, puis vérifie `https://<service>.onrender.com/api/health`.
+
+`render.yaml` configure le disque (1 Go monté sur `/var/data`), `DB_PATH`,
+`TRUST_PROXY=1`, un `JWT_SECRET` généré, et `SEED_ON_START=true` pour insérer
+marchés et produits sur un volume vide. Un `git push` redéploie sans toucher
+aux données.
+
+### Railway
+
+1. **New Project** → **Deploy from GitHub repo** (Dockerfile détecté).
+2. Variables : `NODE_ENV=production`, `JWT_SECRET`, `TRUST_PROXY=1`,
+   `DB_PATH=/var/data/prixmarche.db`, `SEED_ON_START=true`.
+3. **Volumes** → ajoute un volume monté sur `/var/data`.
+4. Healthcheck : `/api/health`.
+
+### Fly.io
+
+```powershell
+fly launch --no-deploy          # fly.toml généré depuis le Dockerfile
+fly volumes create prixmarche_data --size 1 --region cdg
+fly secrets set JWT_SECRET=<secret de 32 caractères minimum>
+fly deploy
+```
+
+Dans `fly.toml`, ajoute :
+
+```toml
+[env]
+  NODE_ENV = "production"
+  DB_PATH = "/var/data/prixmarche.db"
+  SEED_ON_START = "true"
+  TRUST_PROXY = "1"
+
+[mounts]
+  source = "prixmarche_data"
+  destination = "/var/data"
+```
+
+### VPS / Docker
+
+```powershell
+docker build -t prixmarche .
+docker run -d --name prixmarche -p 3000:3000 `
+  -v prixmarche-data:/var/data `
+  -e DB_PATH=/var/data/prixmarche.db `
+  -e JWT_SECRET=<secret> `
+  -e TRUST_PROXY=1 `
+  -e SEED_ON_START=true `
+  prixmarche
+```
+
+Place ensuite Nginx/Caddy devant, en HTTPS.
+
+### Variables d'environnement
+
+| Variable | Rôle |
+|---|---|
+| `NODE_ENV` | `production` en ligne |
+| `JWT_SECRET` | **obligatoire**, 32 caractères minimum (le serveur refuse de démarrer sinon) |
+| `JWT_EXPIRES_IN` | durée du jeton, `7d` par défaut |
+| `PORT` | port d'écoute (fourni par la plupart des hébergeurs) |
+| `DB_PATH` | chemin de la base, à pointer vers le disque persistant |
+| `TRUST_PROXY` | nombre de proxies (1 derrière Render/Railway/Fly/Nginx) |
+| `CORS_ORIGIN` | origines autorisées, séparées par des virgules. **Vide = même origine** (cas normal). `*` refusé en production |
+| `SEED_ON_START` | `true` pour insérer marchés et produits au démarrage (idempotent) |
+| `RATE_LIMIT` | `off` uniquement en développement |
+
+### Sauvegardes
+
+```powershell
+cd backend
+npm run backup      # écrit data/backups/prixmarche-<date>.db
+```
+
+Copie ces fichiers hors du serveur (stockage objet, autre machine) : une
+sauvegarde sur le même disque ne survit pas à une perte du disque.
+
+### Limites connues
+
+- **Une seule instance** : SQLite ne supporte pas plusieurs conteneurs sur le
+  même volume. Pas de scale horizontal, pas de disque partagé entre instances.
+- **Pas de récupération de compte** : un mot de passe perdu est définitif.
+- Logs sur la sortie standard uniquement, pas de remontée d'erreurs.
+- Pour une charge réelle ou plusieurs instances, migrer vers Postgres.
+
+Si `frontend/dist` existe, le backend sert directement l'interface et renvoie
+`index.html` sur les routes inconnues (rechargement de `/comparer`, etc.).
+La route `GET /api/health` vérifie aussi l'accès à la base (503 en cas de
+problème) et renvoie la version, l'environnement et l'heure du serveur.
+L'arrêt du conteneur (`SIGTERM`) ferme proprement le serveur puis la base.
+
+### Sans Docker
+
+1. `cd frontend && npm ci && npm run build`
+2. `cd backend && npm ci --omit=dev`
+3. Renseigner les variables ci-dessus, puis `npm run seed` (première fois)
+4. `npm start`
 
 ## Documentation
 

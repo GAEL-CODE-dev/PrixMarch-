@@ -1,0 +1,37 @@
+# Déploiement Render (https://render.com/docs/blueprint-spec).
+#
+# Un seul service : l'API sert aussi l'interface React compilée.
+# Le disque persistant est indispensable : sans lui, la base SQLite est perdue
+# à chaque redéploiement ou mise en veille.
+#
+# Les disques persistants nécessitent un plan payant (starter ou plus).
+# Sur le plan gratuit, utilise plutôt un hébergeur avec volume ou Postgres.
+services:
+  - type: web
+    name: prixmarche
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    numInstances: 1 # SQLite : une seule instance, jamais de scale horizontal
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Généré par Render au premier déploiement, puis conservé.
+      - key: JWT_SECRET
+        generateValue: true
+      # Render place un proxy devant le conteneur : sans cela, tous les
+      # visiteurs partagent la même IP et les limites de requêtes sautent.
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DB_PATH
+        value: /var/data/prixmarche.db
+      # Insère marchés et produits sur un volume vide (idempotent).
+      - key: SEED_ON_START
+        value: "true"
+    disk:
+      name: prixmarche-data
+      mountPath: /var/data
+      sizeGB: 1

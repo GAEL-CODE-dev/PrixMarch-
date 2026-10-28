@@ -2,11 +2,21 @@ const Database = require('better-sqlite3');
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '..', '..', 'data', 'prixmarche.db');
+// En production, DB_PATH pointe vers le disque persistant (ex. /var/data).
+// Sans variable, on garde le chemin de développement habituel.
+const dbPath = process.env.DB_PATH
+  ? path.resolve(process.env.DB_PATH)
+  : path.join(__dirname, '..', '..', 'data', 'prixmarche.db');
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
 const db = new Database(dbPath);
 db.pragma('foreign_keys = ON');
+// WAL : les lectures ne bloquent plus les écritures, ce qui évite les erreurs
+// « database is locked » quand plusieurs relevés arrivent en même temps.
+// À éviter seulement si DB_PATH est sur un partage réseau (NFS/CIFS).
+db.pragma('journal_mode = WAL');
+db.pragma('busy_timeout = 5000');
+db.pragma('synchronous = NORMAL');
 
 const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 db.exec(schema);

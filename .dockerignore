@@ -1,0 +1,13 @@
+# Contexte de build minimal : rien de local ne doit finir dans l'image.
+**/node_modules
+**/dist
+**/.env
+**/*.db
+**/*.db-*
+**/*.sqlite
+**/*.log
+backend/data
+.git
+.github
+docs
+backend/scripts

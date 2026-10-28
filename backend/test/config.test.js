@@ -21,10 +21,10 @@ test('production : refuse CORS_ORIGIN=*', () => {
   assert.match(res.stderr, /CORS_ORIGIN/);
 });
 
-test('production : refuse CORS_ORIGIN vide', () => {
+test('production : CORS_ORIGIN vide = même origine uniquement', () => {
   const res = chargerConfig({ NODE_ENV: 'production', CORS_ORIGIN: '' });
-  assert.equal(res.status, 1);
-  assert.match(res.stderr, /CORS_ORIGIN/);
+  assert.equal(res.status, 0);
+  assert.match(res.stderr, /même origine/);
 });
 
 test('production : accepte des origines explicites', () => {

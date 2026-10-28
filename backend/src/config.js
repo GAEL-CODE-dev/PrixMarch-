@@ -3,8 +3,9 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const NODE_ENV = process.env.NODE_ENV || 'development';
-// En production, CORS_ORIGIN doit être fourni explicitement : pas de valeur
-// par défaut, sinon le serveur écouterait des origines de développement.
+// En production, pas de valeur par défaut : soit des origines explicites, soit
+// vide (= même origine uniquement), sinon le serveur écouterait des origines de
+// développement.
 const CORS_ORIGIN =
   (process.env.CORS_ORIGIN || '').trim() ||
   (NODE_ENV === 'production' ? '' : 'http://localhost:5173');
@@ -29,8 +30,12 @@ if (NODE_ENV === 'production') {
     process.exit(1);
   }
   if (origines.length === 0) {
-    console.error("CORS_ORIGIN doit être défini en production.");
-    process.exit(1);
+    // Cas normal quand l'interface est servie par l'API (même origine) :
+    // aucune requête cross-origin n'est alors nécessaire.
+    console.warn(
+      "CORS_ORIGIN vide : seules les requêtes de même origine sont acceptées. " +
+        'Définis-le uniquement si l’interface est hébergée sur un autre domaine.'
+    );
   }
 } else if (CORS_ORIGIN.split(',').map((o) => o.trim()).includes('*')) {
   console.warn(

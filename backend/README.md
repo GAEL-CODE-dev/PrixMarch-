@@ -59,8 +59,18 @@ restent disponibles pour tester un serveur déjà démarré :
 ## Production
 
 - `npm start` (le serveur sert aussi `frontend/dist` s'il existe)
-- Variables utiles : `NODE_ENV`, `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `TRUST_PROXY`
-- En `NODE_ENV=production` : `CORS_ORIGIN` obligatoire, `*` refusé au démarrage
+- Variables utiles : `NODE_ENV`, `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`,
+  `CORS_ORIGIN`, `TRUST_PROXY`, `DB_PATH`, `SEED_ON_START`
+- En `NODE_ENV=production` : `*` refusé au démarrage ; `CORS_ORIGIN` vide
+  signifie « même origine uniquement » (interface servie par l'API)
+- `TRUST_PROXY=1` derrière un reverse proxy, sinon les limites de requêtes
+  s'appliquent à tous les visiteurs comme s'ils avaient la même IP
+- `DB_PATH` doit pointer vers un disque persistant (sinon perte des données)
+- `SEED_ON_START=true` insère marchés et produits sur un volume vide
 - Ne pas laisser `RATE_LIMIT=off`
+- Sauvegarde : `npm run backup`
+
+Déploiement détaillé (Render, Railway, Fly.io, Docker) :
+[README principal](../README.md#production).
 
 Documentation : [API](docs/api.md) · [Modèle de données](docs/modele-donnees.md)
