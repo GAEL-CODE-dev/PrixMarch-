@@ -42,7 +42,16 @@ npm run dev                 # http://localhost:3000
 ## Tests
 
 ```powershell
-npm test                    # règles métier (node:test, sans dépendance supplémentaire)
+npm test                    # tout (règles métier + API)
+npm run test:unit           # règles métier uniquement
+npm run test:api            # API d'intégration (base SQLite temporaire)
+```
+
+Les tests d'intégration démarrent l'application sur un port aléatoire et
+n'utilisent ni la base ni les données de développement. Les scripts PowerShell
+restent disponibles pour tester un serveur déjà démarré :
+
+```powershell
 ./scripts/test-api.ps1      # serveur allumé
 ./scripts/test-limits.ps1
 ```
@@ -50,7 +59,8 @@ npm test                    # règles métier (node:test, sans dépendance suppl
 ## Production
 
 - `npm start` (le serveur sert aussi `frontend/dist` s'il existe)
-- Variables utiles : `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `TRUST_PROXY`
+- Variables utiles : `NODE_ENV`, `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `TRUST_PROXY`
+- En `NODE_ENV=production` : `CORS_ORIGIN` obligatoire, `*` refusé au démarrage
 - Ne pas laisser `RATE_LIMIT=off`
 
 Documentation : [API](docs/api.md) · [Modèle de données](docs/modele-donnees.md)

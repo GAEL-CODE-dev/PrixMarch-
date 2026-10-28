@@ -14,6 +14,22 @@ Base : `http://localhost:3000/api`
 | GET | /prices | derniers prix (?product_id=, ?market_id=, ?q=, ?categorie=, ?limit=), avec le champ `categorie` |
 | GET | /prices/compare/:productId | comparaison par marché, du moins cher au plus cher |
 
+### Réponse de /health
+
+```json
+{
+  "status": "ok",
+  "app": "PrixMarché API",
+  "version": "1.0.0",
+  "env": "production",
+  "time": "2026-10-28T12:00:00.000Z"
+}
+```
+
+En cas d'échec de la base : code `503` et `status: "error"`. Les autres champs
+restent identiques, ce qui permet de surveiller le service (uptime, version
+déployée, environnement).
+
 ## Authentification
 
 | Méthode | URL | Corps | Réponse |
@@ -50,3 +66,13 @@ Réponse JSON `{ "erreur": "message" }`.
 | 422 | prix incohérent |
 | 429 | trop de requêtes |
 | 500 | erreur interne |
+
+## Environnement et CORS
+
+- `CORS_ORIGIN` : origines autorisées, séparées par des virgules
+  (ex. `https://prixmarche.example,https://www.prixmarche.example`).
+- En `NODE_ENV=production`, le serveur refuse de démarrer si `CORS_ORIGIN`
+  est vide ou vaut `*`.
+- En développement, `*` est accepté mais un avertissement est affiché.
+- `TRUST_PROXY=1` doit être défini derrière un reverse proxy (Render, Nginx...)
+  pour que les limites de requêtes comptent la bonne adresse IP.

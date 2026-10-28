@@ -10,6 +10,12 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      NODE_ENV: test
+      JWT_SECRET: test-secret-very-long-minimum-32-chars-1234567890
+      JWT_EXPIRES_IN: 1h
+      CORS_ORIGIN: http://localhost:5173
+      RATE_LIMIT: off
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

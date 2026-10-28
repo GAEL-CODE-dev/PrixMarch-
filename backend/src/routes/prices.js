@@ -72,9 +72,11 @@ router.get('/', (req, res) => {
 router.post('/', requireAuth, priceLimiter, (req, res) => {
   const { product_id, market_id, prix, date_releve } = req.body || {};
 
-  const productId = Number(product_id);
-  const marketId = Number(market_id);
-  const prixNum = Number(prix);
+  // Types stricts : un booléen, un tableau ou une chaîne ne doit pas être
+  // converti silencieusement en identifiant ou en prix.
+  const productId = product_id;
+  const marketId = market_id;
+  const prixNum = prix;
   const date = date_releve || today();
 
   if (!Number.isInteger(productId) || !Number.isInteger(marketId)) {

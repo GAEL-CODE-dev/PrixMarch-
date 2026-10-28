@@ -28,7 +28,7 @@ prixmarche/
 │   ├── src/domain/       règles métier pures (médiane, quartiles, dates)
 │   ├── src/routes/       auth, markets, products, prices
 │   ├── src/db/           schéma, connexion, données de démonstration
-│   ├── test/             tests unitaires (node:test)
+│   ├── test/             tests unitaires et d'intégration (node:test)
 │   └── docs/             API et modèle de données
 ├── frontend/
 │   └── src/
@@ -84,14 +84,20 @@ Pour viser une autre API : `VITE_API_URL=https://mon-api/api npm run build`.
 
 ```powershell
 cd backend
-npm test            # règles métier : médiane, quartiles, fraîcheur, dates, seuils
+npm test            # tout : règles métier + API
+npm run test:unit   # règles métier : médiane, quartiles, fraîcheur, dates, seuils
+npm run test:api    # API : santé, auth, marchés, produits, prix (base temporaire)
 
 cd frontend
 npm run lint
 npm run build
 ```
 
-Les tests de bout en bout de l'API sont des scripts PowerShell à lancer serveur allumé :
+Les tests d'API démarrent le serveur sur un port aléatoire avec une base SQLite
+temporaire : ils ne touchent pas aux données de développement. La CI
+(`.github/workflows/ci.yml`) lance `npm test` avec `NODE_ENV=test`.
+
+Les scripts PowerShell restent disponibles pour tester une instance déjà lancée :
 
 ```powershell
 cd backend
@@ -103,16 +109,19 @@ cd backend
 
 1. Construire l'interface : `cd frontend && npm run build`
 2. Renseigner les variables d'environnement du backend :
+   - `NODE_ENV=production`
    - `JWT_SECRET` (32 caractères minimum, obligatoire)
    - `JWT_EXPIRES_IN` (par défaut `7d`)
-   - `CORS_ORIGIN` (origine publique de l'interface, séparée par des virgules)
+   - `CORS_ORIGIN` (origine publique de l'interface, séparée par des virgules).
+     Obligatoire en production ; `*` est refusé au démarrage.
    - `TRUST_PROXY=1` derrière un proxy (Render, Nginx, etc.)
    - ne pas laisser `RATE_LIMIT=off`
 3. Démarrer : `cd backend && npm start`
 
 Si `frontend/dist` existe, le backend sert directement l'interface et renvoie `index.html`
 sur les routes inconnues (rechargement de `/comparer`, etc.). La route `GET /api/health`
-vérifie aussi l'accès à la base (503 en cas de problème).
+vérifie aussi l'accès à la base (503 en cas de problème) et renvoie la version,
+l'environnement et l'heure du serveur.
 
 ## Documentation
 

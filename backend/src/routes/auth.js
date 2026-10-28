@@ -9,6 +9,13 @@ const { loginLimiter, registerLimiter } = require('../middleware/limits');
 
 const router = express.Router();
 
+// Les réponses d'authentification ne doivent jamais être mises en cache
+// (le jeton et le profil ne doivent pas rester dans un cache intermédiaire).
+router.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const BCRYPT_COST = 10;
 

@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const db = require('./db/database');
 const { CORS_ORIGIN } = require('./config');
 const { generalLimiter } = require('./middleware/limits');
+const pkg = require('../package.json');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,17 +21,52 @@ const origines = CORS_ORIGIN.split(',')
   .map((origine) => origine.trim())
   .filter(Boolean);
 
-app.use(helmet());
+// CSP adaptée à l'interface servie en statique (aucune ressource externe).
+// Les styles inline sont autorisés car React en utilise pour la mise en page.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:'],
+        fontSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
+        // Évite de forcer HTTPS sur un serveur local en HTTP.
+        upgradeInsecureRequests: null,
+      },
+    },
+  })
+);
 app.use(cors({ origin: origines.includes('*') ? true : origines }));
-app.use(express.json({ limit: '10kb' }));
+// Pas de corps compressé : l'API n'en reçoit pas et cela évite toute
+// décompression inutile (surface d'attaque et coût CPU).
+app.use(express.json({ limit: '10kb', inflate: false }));
 app.use('/api', generalLimiter);
 
 app.get('/api/health', (req, res) => {
   try {
     db.prepare('SELECT 1').get();
-    res.json({ status: 'ok', app: 'PrixMarché API' });
+    res.json({
+      status: 'ok',
+      app: 'PrixMarché API',
+      version: pkg.version,
+      env: process.env.NODE_ENV || 'development',
+      time: new Date().toISOString(),
+    });
   } catch {
-    res.status(503).json({ status: 'error', app: 'PrixMarché API' });
+    res.status(503).json({
+      status: 'error',
+      app: 'PrixMarché API',
+      version: pkg.version,
+      env: process.env.NODE_ENV || 'development',
+      time: new Date().toISOString(),
+    });
   }
 });
 
@@ -65,10 +101,19 @@ app.use((err, req, res, next) => {
   if (err.type === 'entity.too.large') {
     return res.status(413).json({ erreur: 'Requête trop volumineuse' });
   }
+  // Erreurs client connues de body-parser (encodage refusé, gzip invalide...)
+  const status = err.status || err.statusCode;
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ erreur: 'Requête invalide' });
+  }
   console.error(err);
   res.status(500).json({ erreur: 'Erreur interne du serveur' });
 });
 
-app.listen(PORT, () => {
-  console.log(`API lancée sur http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`API lancée sur http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
